@@ -1,0 +1,33 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <application
+        android:allowBackup="true"
+        android:label="MoodTracker"
+        android:icon="@mipmap/ic_launcher"
+        android:theme="@style/Theme.MoodTracker"
+        android:usesCleartextTraffic="true"
+        android:networkSecurityConfig="@xml/network_security_config">
+
+        <!-- SplashActivity — LAUNCHER -->
+        <activity
+            android:name=".splash.SplashActivity"
+            android:exported="true"
+            android:theme="@style/Theme.MoodTracker">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+
+        <!-- Экран авторизации -->
+        <activity
+            android:name=".auth.AuthActivity"
+            android:exported="false"/>
+
+        <!-- Твой MainActivity как было -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"/>
+    </application>
+</manifest>

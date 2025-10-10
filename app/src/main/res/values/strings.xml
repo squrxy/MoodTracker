@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Mood Tracker</string>
+    <string name="today_predominant_mood">Today\'s predominant mood</string>
+    <string name="mood_percentages">Mood Percentages</string>
+</resources>

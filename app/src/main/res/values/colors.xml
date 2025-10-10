@@ -1,0 +1,14 @@
+<resources>
+    <!-- акцент -->
+    <color name="teal_200">#79C8C5</color>
+
+    <!-- цвета секторов -->
+    <color name="yellowJoy">#FFE121</color>
+    <color name="blueSad">#2490FF</color>
+    <color name="redAnger">#F43737</color>
+    <color name="purpleFear">#972CFF</color>
+    <color name="grayNeutral">#C3D6FD</color>
+
+    <!-- мягкая карточка -->
+    <color name="surface_variant_dark">#2A2B34</color>
+</resources>

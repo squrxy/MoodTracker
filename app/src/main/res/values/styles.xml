@@ -1,0 +1,7 @@
+<resources>
+    <style name="MoodCard" parent="Widget.Material3.CardView.Filled">
+        <item name="android:clickable">false</item>
+        <item name="android:focusable">false</item>
+        <item name="strokeWidth">0dp</item>
+    </style>
+</resources>
