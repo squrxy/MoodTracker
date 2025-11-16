@@ -41,6 +41,7 @@ dependencies {
     implementation("androidx.core:core:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
     // Lottie
     implementation("com.airbnb.android:lottie:6.4.0")

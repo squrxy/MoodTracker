@@ -47,32 +47,18 @@ public class AuthActivity extends AppCompatActivity {
         btnLogin.setOnClickListener(v -> {
             String email = etEmail.getText().toString().trim();
             String pass  = etPassword.getText().toString().trim();
-            if (TextUtils.isEmpty(email) || TextUtils.isEmpty(pass)) {
-                Toast.makeText(this, "Enter email & password", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            // TODO: подружить с твоим API
-            api.login(new LoginRequest(email, pass)).enqueue(new SimpleAuthCallback());
+            api.login(email, pass).enqueue(new SimpleAuthCallback());
         });
 
         btnRegister.setOnClickListener(v -> {
             String email = etEmail.getText().toString().trim();
             String pass  = etPassword.getText().toString().trim();
-            if (TextUtils.isEmpty(email) || TextUtils.isEmpty(pass)) {
-                Toast.makeText(this, "Enter email & password", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            // username временно = email до "@"
             String username = email.contains("@") ? email.substring(0, email.indexOf('@')) : email;
-            api.register(new RegisterRequest(username, email, pass)).enqueue(new SimpleAuthCallback());
+            api.register(username, email, pass).enqueue(new SimpleAuthCallback());
         });
 
-        btnGuest.setOnClickListener(v -> {
-            // если серверного /auth/guest пока нет — создаём локальный guest
-            // иначе: api.guest().enqueue(new SimpleAuthCallback());
-            session.ensureLocalGuest();
-            goMain();
-        });
+        btnGuest.setOnClickListener(v -> api.guest().enqueue(new SimpleAuthCallback()));
+
     }
 
     private void goMain() {
@@ -81,18 +67,26 @@ public class AuthActivity extends AppCompatActivity {
     }
 
     /** единый колбэк для login/register/guest */
-    private class SimpleAuthCallback implements Callback<AuthResponse> {
-        @Override public void onResponse(Call<AuthResponse> call, Response<AuthResponse> resp) {
+    private class SimpleAuthCallback implements retrofit2.Callback<AuthResponse> {
+        @Override public void onResponse(retrofit2.Call<AuthResponse> call,
+                                         retrofit2.Response<AuthResponse> resp) {
             if (resp.isSuccessful() && resp.body() != null && resp.body().success) {
                 AuthResponse r = resp.body();
                 session.saveSession(r.token != null ? r.token : r.userId, r.userId, r.isGuest);
                 goMain();
             } else {
-                Toast.makeText(AuthActivity.this, "Auth failed", Toast.LENGTH_SHORT).show();
+                String err = "";
+                try { err = resp.errorBody() != null ? resp.errorBody().string() : ""; } catch (Exception ignored) {}
+                android.widget.Toast.makeText(AuthActivity.this,
+                        "Auth failed: " + (resp.body()!=null?resp.body().message:"") + " " + err,
+                        android.widget.Toast.LENGTH_LONG).show();
             }
         }
-        @Override public void onFailure(Call<AuthResponse> call, Throwable t) {
-            Toast.makeText(AuthActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+        @Override public void onFailure(retrofit2.Call<AuthResponse> call, Throwable t) {
+            android.widget.Toast.makeText(AuthActivity.this,
+                    "Network error: " + t.getMessage(),
+                    android.widget.Toast.LENGTH_LONG).show();
         }
     }
+
 }

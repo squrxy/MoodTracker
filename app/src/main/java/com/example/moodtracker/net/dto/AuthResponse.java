@@ -2,8 +2,9 @@ package com.example.moodtracker.net.dto;
 
 public class AuthResponse {
     public boolean success;
-    public String token;     // если пока нет токена — пришли guestId
-    public String userId;    // строковый id (uuid) или числовой — неважно
+    public String token;
+    public String userId;
     public boolean isGuest;
-    public String message;
+    public String uuid;     // мы его тоже отдаём в PHP — пригодится
+    public String message;  // текст ошибки с сервера
 }
