@@ -4,4 +4,13 @@
         <item name="android:focusable">false</item>
         <item name="strokeWidth">0dp</item>
     </style>
+    <style name="DialogSlideUpAnimation">
+        <item name="android:windowEnterAnimation">@anim/slide_up_fade_in</item>
+        <item name="android:windowExitAnimation">@anim/slide_down_fade_out</item>
+    </style>
+    <style name="DialogCenterFadeAnimation">
+        <item name="android:windowEnterAnimation">@anim/fade_in_scale_in</item>
+        <item name="android:windowExitAnimation">@anim/fade_out_scale_out</item>
+    </style>
+
 </resources>
