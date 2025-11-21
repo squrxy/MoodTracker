@@ -21,9 +21,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.airbnb.lottie.LottieAnimationView;
 import com.example.moodtracker.R;
+import com.example.moodtracker.data.MoodResult;
+import com.example.moodtracker.net.dto.MoodDto;
+import com.example.moodtracker.ui.home.HomeViewModel;
+import com.example.moodtracker.ui.home.HomeViewModelFactory;
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.components.Legend;
@@ -33,6 +38,7 @@ import com.github.mikephil.charting.data.PieEntry;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Главный экран:
@@ -49,6 +55,12 @@ public class HomeFragment extends Fragment {
     private TextView tvMoodTitle;
     private View cardPercents, tvMoodLabel, chartContainer;
     private NestedScrollView scroll;
+    private View stateLoading, stateError;
+    private TextView tvErrorMessage;
+
+    private HomeViewModel viewModel;
+    private boolean introPlayed = false;
+    private boolean chartConfigured = false;
 
     // пауза между повторами Lottie (мс)
     private static final long LOTTIE_PAUSE_MS = 2000L;
@@ -67,6 +79,12 @@ public class HomeFragment extends Fragment {
         cardPercents = v.findViewById(R.id.cardPercents);
         chartContainer = v.findViewById(R.id.chartContainer);
         scroll = v.findViewById(R.id.scroll);
+        stateLoading = v.findViewById(R.id.stateLoading);
+        stateError = v.findViewById(R.id.stateError);
+        tvErrorMessage = v.findViewById(R.id.tvErrorMessage);
+
+        viewModel = new ViewModelProvider(this, new HomeViewModelFactory(requireContext()))
+                .get(HomeViewModel.class);
 
         // делаем контейнер квадратным после измерения
         chartContainer.post(() -> {
@@ -76,23 +94,73 @@ public class HomeFragment extends Fragment {
             chartContainer.setLayoutParams(lp);
         });
 
-        setupChart(v);
-        playIntroAnimations();
+        v.findViewById(R.id.btnRetry).setOnClickListener(view -> viewModel.loadMoods());
+
+        viewModel.getMoodState().observe(getViewLifecycleOwner(), this::renderState);
+        viewModel.loadMoods();
         hookBounceOnScroll();
 
         return v;
     }
 
-    private void setupChart(@NonNull View root) {
-        // демо-данные
-        float joy = 60f, sadness = 15f, anger = 10f, fear = 5f, neutral = 10f;
+    private void renderState(@Nullable MoodResult result) {
+        if (result == null) return;
 
+        boolean hasData = result.data != null;
+        boolean hasEntries = hasData && !result.data.isEmpty();
+        showLoading(result.isLoading && !hasEntries);
+        showError(result.errorMessage, hasData);
+
+        if (hasData) {
+            applyMoodData(result.data);
+            if (!introPlayed && !result.isLoading) {
+                playIntroAnimations();
+                introPlayed = true;
+            }
+        } else {
+            hideContent();
+        }
+    }
+
+    private void applyMoodData(@NonNull List<MoodDto> moods) {
+        float[] percents = calculatePercents(moods);
+        setupChart(percents);
+        showContent();
+    }
+
+    private float[] calculatePercents(@NonNull List<MoodDto> moods) {
+        float[] counts = new float[5];
+        for (MoodDto mood : moods) {
+            int idx = mapEmotionIdToIndex((int) mood.emotion_id);
+            if (idx >= 0) counts[idx]++;
+        }
+        float total = counts[0] + counts[1] + counts[2] + counts[3] + counts[4];
+        if (total == 0f) return new float[]{0f, 0f, 0f, 0f, 0f};
+
+        for (int i = 0; i < counts.length; i++) {
+            counts[i] = (counts[i] / total) * 100f;
+        }
+        return counts;
+    }
+
+    private int mapEmotionIdToIndex(int emotionId) {
+        switch (emotionId) {
+            case 1: return 0; // Joy
+            case 2: return 1; // Sadness
+            case 3: return 2; // Anger
+            case 4: return 3; // Fear
+            case 5: return 4; // Neutral
+            default: return -1;
+        }
+    }
+
+    private void setupChart(float[] percents) {
         List<PieEntry> entries = new ArrayList<>();
-        entries.add(new PieEntry(joy, "Joy"));
-        entries.add(new PieEntry(sadness, "Sadness"));
-        entries.add(new PieEntry(anger, "Anger"));
-        entries.add(new PieEntry(fear, "Fear"));
-        entries.add(new PieEntry(neutral, "Neutral"));
+        entries.add(new PieEntry(percents[0], "Joy"));
+        entries.add(new PieEntry(percents[1], "Sadness"));
+        entries.add(new PieEntry(percents[2], "Anger"));
+        entries.add(new PieEntry(percents[3], "Fear"));
+        entries.add(new PieEntry(percents[4], "Neutral"));
 
         // ===== верхний чарт (основной) =====
         PieDataSet dataSet = new PieDataSet(entries, "");
@@ -191,12 +259,32 @@ public class HomeFragment extends Fragment {
         }
 
         // текст и проценты
-        tvMoodTitle.setText("Joyful");
-        bindRow(root.findViewById(R.id.rowJoy),     requireContext().getColor(R.color.yellowJoy),  "Joy",     "60%");
-        bindRow(root.findViewById(R.id.rowSad),     requireContext().getColor(R.color.blueSad),    "Sadness", "15%");
-        bindRow(root.findViewById(R.id.rowAnger),   requireContext().getColor(R.color.redAnger),   "Anger",   "10%");
-        bindRow(root.findViewById(R.id.rowFear),    requireContext().getColor(R.color.purpleFear), "Fear",    "5%");
-        bindRow(root.findViewById(R.id.rowNeutral), requireContext().getColor(R.color.grayNeutral),"Neutral", "10%");
+        float top = percents[0];
+        String topLabel = "Joyful";
+        String[] labels = {"Joy", "Sadness", "Anger", "Fear", "Neutral"};
+        boolean hasPositive = percents[0] > 0f;
+        for (int i = 1; i < percents.length; i++) {
+            if (percents[i] > top) {
+                top = percents[i];
+                topLabel = labels[i];
+            }
+            if (percents[i] > 0f) hasPositive = true;
+        }
+        if (!hasPositive) {
+            topLabel = getString(R.string.mood_percentages);
+        }
+        tvMoodTitle.setText(topLabel);
+        bindRow(requireView().findViewById(R.id.rowJoy),     requireContext().getColor(R.color.yellowJoy),  "Joy",     formatPercent(percents[0]));
+        bindRow(requireView().findViewById(R.id.rowSad),     requireContext().getColor(R.color.blueSad),    "Sadness", formatPercent(percents[1]));
+        bindRow(requireView().findViewById(R.id.rowAnger),   requireContext().getColor(R.color.redAnger),   "Anger",   formatPercent(percents[2]));
+        bindRow(requireView().findViewById(R.id.rowFear),    requireContext().getColor(R.color.purpleFear), "Fear",    formatPercent(percents[3]));
+        bindRow(requireView().findViewById(R.id.rowNeutral), requireContext().getColor(R.color.grayNeutral),"Neutral", formatPercent(percents[4]));
+
+        chartConfigured = true;
+    }
+
+    private String formatPercent(float value) {
+        return String.format(Locale.getDefault(), "%.0f%%", value);
     }
 
     /** лёгкий bounce-эффект при прокрутке (по первому ощутимому скроллу) */
@@ -283,5 +371,35 @@ public class HomeFragment extends Fragment {
                 lottieEmoji.postDelayed(lottieEmoji::playAnimation, LOTTIE_PAUSE_MS);
             }
         });
+    }
+
+    private void showLoading(boolean show) {
+        if (stateLoading != null) stateLoading.setVisibility(show ? View.VISIBLE : View.GONE);
+    }
+
+    private void showError(@Nullable String errorMessage, boolean hasData) {
+        if (stateError == null) return;
+        if (errorMessage != null && !errorMessage.isEmpty() && !hasData) {
+            stateError.setVisibility(View.VISIBLE);
+            tvErrorMessage.setText(errorMessage);
+        } else {
+            stateError.setVisibility(View.GONE);
+        }
+    }
+
+    private void showContent() {
+        for (View v : new View[]{chartContainer, tvMoodLabel, tvMoodTitle, cardPercents}) {
+            v.setVisibility(View.VISIBLE);
+        }
+        if (!chartConfigured) return;
+        pieChart.invalidate();
+        pieChartGlowOuter.invalidate();
+        pieChartGlowInner.invalidate();
+    }
+
+    private void hideContent() {
+        for (View v : new View[]{chartContainer, tvMoodLabel, tvMoodTitle, cardPercents}) {
+            v.setVisibility(View.INVISIBLE);
+        }
     }
 }

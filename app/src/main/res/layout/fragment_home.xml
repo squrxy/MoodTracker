@@ -27,6 +27,53 @@
             app:titleCentered="true"
             app:titleTextColor="?attr/colorOnBackground"/>
 
+        <LinearLayout
+            android:id="@+id/stateLoading"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="@dimen/space_16"
+            android:visibility="gone">
+
+            <ProgressBar
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/space_12"
+                android:text="@string/loading_moods"
+                android:textAppearance="?attr/textAppearanceBodyLarge"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/stateError"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="@dimen/space_16"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tvErrorMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/error_loading_moods"
+                android:textAppearance="?attr/textAppearanceBodyLarge"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnRetry"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_12"
+                android:text="@string/retry"/>
+        </LinearLayout>
+
         <!-- Квадратный контейнер диаграммы -->
         <FrameLayout
             android:id="@+id/chartContainer"
