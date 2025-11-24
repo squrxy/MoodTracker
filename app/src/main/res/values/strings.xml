@@ -2,4 +2,7 @@
     <string name="app_name">Mood Tracker</string>
     <string name="today_predominant_mood">Today\'s predominant mood</string>
     <string name="mood_percentages">Mood Percentages</string>
+    <string name="loading_moods">Loading your moods...</string>
+    <string name="error_loading_moods">Could not load moods</string>
+    <string name="retry">Retry</string>
 </resources>
