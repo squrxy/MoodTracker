@@ -185,9 +185,8 @@ public class DiaryFragment extends Fragment
                     Toast.makeText(requireContext(),
                             "Failed to save entry: code=" + response.code() + " " + err,
                             Toast.LENGTH_LONG).show();
+                    loadMoods();
                 }
-                // синхронизируемся с сервером на всякий случай
-                loadMoods();
             }
 
             @Override
