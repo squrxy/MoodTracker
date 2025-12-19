@@ -12,24 +12,26 @@ public class MoodStats {
     public final float anger;
     public final float fear;
     public final float neutral;
+    public final int dominantId;
     public final String dominantEmoji;
     public final String dominantTitle;
     public final boolean hasData;
 
     private MoodStats(float joy, float sadness, float anger, float fear, float neutral,
-                      String dominantEmoji, String dominantTitle, boolean hasData) {
+                      int dominantId, String dominantEmoji, String dominantTitle, boolean hasData) {
         this.joy = joy;
         this.sadness = sadness;
         this.anger = anger;
         this.fear = fear;
         this.neutral = neutral;
+        this.dominantId = dominantId;
         this.dominantEmoji = dominantEmoji;
         this.dominantTitle = dominantTitle;
         this.hasData = hasData;
     }
 
     public static MoodStats empty() {
-        return new MoodStats(0, 0, 0, 0, 0, "😊", "Joyful", false);
+        return new MoodStats(0, 0, 0, 0, 0, 1, "😊", "Joyful", false);
     }
 
     public static MoodStats from(List<MoodDto> moods) {
@@ -55,7 +57,7 @@ public class MoodStats {
         String dominantTitle = mapEmotionToTitle(dominantId);
 
         return new MoodStats(joy, sadness, anger, fear, neutral,
-                dominantEmoji, dominantTitle, true);
+                dominantId, dominantEmoji, dominantTitle, true);
     }
 
     private static float percent(int count, int total) {

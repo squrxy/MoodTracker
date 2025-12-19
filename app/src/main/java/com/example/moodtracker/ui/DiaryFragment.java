@@ -78,6 +78,12 @@ public class DiaryFragment extends Fragment
         return v;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        viewModel.loadMoods();
+    }
+
     private void observeMoods() {
         viewModel.getMoodsState().observe(getViewLifecycleOwner(), this::renderState);
     }

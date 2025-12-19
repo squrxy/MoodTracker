@@ -25,6 +25,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.airbnb.lottie.LottieAnimationView;
+import com.airbnb.lottie.LottieDrawable;
 import com.example.moodtracker.R;
 import com.example.moodtracker.auth.SessionManager;
 import com.example.moodtracker.data.MoodRepository;
@@ -63,6 +64,12 @@ public class HomeFragment extends Fragment {
 
     private HomeViewModel viewModel;
     private boolean introPlayed = false;
+    private final Runnable lottieLoopRunnable = new Runnable() {
+        @Override
+        public void run() {
+            lottieEmoji.playAnimation();
+        }
+    };
 
     // пауза между повторами Lottie (мс)
     private static final long LOTTIE_PAUSE_MS = 2000L;
@@ -108,6 +115,14 @@ public class HomeFragment extends Fragment {
         viewModel.loadStats();
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        lottieEmoji.removeCallbacks(lottieLoopRunnable);
+        lottieEmoji.removeAllAnimatorListeners();
+        lottieEmoji.cancelAnimation();
+    }
+
     private void observeStats(@NonNull View root) {
         viewModel.getStatsState().observe(getViewLifecycleOwner(), state -> {
             boolean isLoading = state.getStatus() == UiState.Status.LOADING;
@@ -125,6 +140,7 @@ public class HomeFragment extends Fragment {
                 chartContainer.setVisibility(View.VISIBLE);
                 cardPercents.setVisibility(View.VISIBLE);
                 setupChart(root, stats);
+                applyEmojiAnimation(stats.dominantId);
                 if (!introPlayed) {
                     playIntroAnimations();
                     introPlayed = true;
@@ -134,6 +150,7 @@ public class HomeFragment extends Fragment {
                 cardPercents.setVisibility(View.GONE);
                 tvMoodTitle.setText("No mood data yet");
                 tvMoodLabel.setVisibility(View.VISIBLE);
+                applyEmojiAnimation(0);
             }
         });
     }
@@ -259,6 +276,30 @@ public class HomeFragment extends Fragment {
         return String.format(Locale.getDefault(), "%.0f%%", value);
     }
 
+    private void applyEmojiAnimation(int dominantEmotionId) {
+        int animationRes = mapEmotionToAnimation(dominantEmotionId);
+        lottieEmoji.setAnimation(animationRes);
+        lottieEmoji.setProgress(0f);
+        startLottieWithPause();
+    }
+
+    private int mapEmotionToAnimation(int emotionId) {
+        switch (emotionId) {
+            case 1:
+                return R.raw.emoji_laugh;
+            case 2:
+                return R.raw.emoji_sad;
+            case 3:
+                return R.raw.emoji_anger;
+            case 4:
+                return R.raw.emoji_fear;
+            case 5:
+                return R.raw.emoji_neutral;
+            default:
+                return R.raw.emoji_laugh;
+        }
+    }
+
     private List<Integer> withAlpha(List<Integer> colors, float alpha) {
         List<Integer> list = new ArrayList<>();
         for (Integer c : colors) {
@@ -317,6 +358,10 @@ public class HomeFragment extends Fragment {
         lottieEmoji.setScaleX(0.85f);
         lottieEmoji.setScaleY(0.85f);
         lottieEmoji.setAlpha(0f);
+        lottieEmoji.setRepeatCount(0);
+        lottieEmoji.setRepeatMode(LottieDrawable.RESTART);
+        lottieEmoji.removeAllAnimatorListeners();
+        lottieEmoji.removeCallbacks(lottieLoopRunnable);
 
         AnimatorSet emojiIn = new AnimatorSet();
         emojiIn.playTogether(
@@ -337,14 +382,16 @@ public class HomeFragment extends Fragment {
     }
 
     private void startLottieWithPause() {
-        lottieEmoji.playAnimation();
+        lottieEmoji.removeCallbacks(lottieLoopRunnable);
+        lottieEmoji.removeAllAnimatorListeners();
         lottieEmoji.addAnimatorListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
                 lottieEmoji.removeAllAnimatorListeners();
-                lottieEmoji.postDelayed(lottieEmoji::playAnimation, LOTTIE_PAUSE_MS);
+                lottieEmoji.postDelayed(lottieLoopRunnable, LOTTIE_PAUSE_MS);
             }
         });
+        lottieEmoji.playAnimation();
     }
 
     private void hookBounceOnScroll() {

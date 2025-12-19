@@ -2,6 +2,7 @@ package com.example.moodtracker.net;
 
 import com.example.moodtracker.net.dto.AuthResponse;
 import com.example.moodtracker.net.dto.MoodDto;
+import com.example.moodtracker.net.dto.SettingsDto;
 import com.example.moodtracker.net.dto.SimpleResponse;
 
 import java.util.List;
@@ -51,4 +52,17 @@ public interface ApiService {
     @POST("moods/delete.php")
     Call<SimpleResponse> deleteMood(@Field("id") long id,
                                     @Field("user_id") String userId);
+
+    // ---------- SETTINGS ----------
+
+    @FormUrlEncoded
+    @POST("settings/get.php")
+    Call<SettingsDto> getSettings(@Field("user_id") String userId);
+
+    @FormUrlEncoded
+    @POST("settings/update.php")
+    Call<SettingsDto> updateSettings(@Field("user_id") String userId,
+                                     @Field("notifications_enabled") int notificationsEnabled,
+                                     @Field("notify_time") String notifyTime,
+                                     @Field("default_period") String defaultPeriod);
 }
