@@ -27,6 +27,23 @@
             app:titleCentered="true"
             app:titleTextColor="?attr/colorOnBackground"/>
 
+        <ProgressBar
+            android:id="@+id/homeProgress"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/homeError"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textColor="@color/redAnger"
+            android:paddingTop="@dimen/space_8"
+            android:visibility="gone" />
+
         <!-- Квадратный контейнер диаграммы -->
         <FrameLayout
             android:id="@+id/chartContainer"
@@ -66,7 +83,7 @@
                 android:layout_gravity="center"
                 app:lottie_rawRes="@raw/emoji_laugh"
                 app:lottie_autoPlay="false"
-                app:lottie_loop="true"/>
+                app:lottie_loop="false"/>
         </FrameLayout>
 
         <TextView
@@ -117,6 +134,46 @@
                 <include layout="@layout/row_percent" android:id="@+id/rowAnger"/>
                 <include layout="@layout/row_percent" android:id="@+id/rowFear"/>
                 <include layout="@layout/row_percent" android:id="@+id/rowNeutral"/>
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardWeekly"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_16"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="@color/surface_variant_dark">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/space_16">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/weekly_mood_trend"
+                    android:textStyle="bold"
+                    android:textAppearance="?attr/textAppearanceTitleLarge"/>
+
+                <com.github.mikephil.charting.charts.HorizontalBarChart
+                    android:id="@+id/weeklyChart"
+                    android:layout_width="match_parent"
+                    android:layout_height="240dp"
+                    android:layout_marginTop="12dp"/>
+
+                <TextView
+                    android:id="@+id/weeklyEmpty"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:gravity="center"
+                    android:text="@string/weekly_chart_empty"
+                    android:visibility="gone"/>
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
