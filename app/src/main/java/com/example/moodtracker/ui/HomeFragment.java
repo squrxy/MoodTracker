@@ -96,11 +96,16 @@ public class HomeFragment extends Fragment {
         HomeViewModelFactory factory = new HomeViewModelFactory(repository, sessionManager);
         viewModel = new ViewModelProvider(this, factory).get(HomeViewModel.class);
         observeStats(v);
-        viewModel.loadStats();
 
         hookBounceOnScroll();
 
         return v;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        viewModel.loadStats();
     }
 
     private void observeStats(@NonNull View root) {
@@ -266,8 +271,8 @@ public class HomeFragment extends Fragment {
 
     private void bindRow(View row, int color, String label, String percent) {
         View dot = row.findViewById(R.id.dot);
-        TextView tvLabel = row.findViewById(R.id.tvLabel);
-        TextView tvPercent = row.findViewById(R.id.tvPercent);
+        TextView tvLabel = row.findViewById(R.id.label);
+        TextView tvPercent = row.findViewById(R.id.value);
 
         GradientDrawable drawable = new GradientDrawable();
         drawable.setShape(GradientDrawable.OVAL);
