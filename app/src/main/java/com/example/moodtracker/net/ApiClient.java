@@ -1,14 +1,15 @@
 package com.example.moodtracker.net;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
 import okhttp3.Request;
-import okhttp3.Response;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -28,19 +29,15 @@ public final class ApiClient {
             HttpLoggingInterceptor log = new HttpLoggingInterceptor();
             log.setLevel(HttpLoggingInterceptor.Level.BODY);
 
-            // Интерцептор, который добавляет Connection: close
-            Interceptor connectionCloseInterceptor = new Interceptor() {
-                @Override
-                public Response intercept(Chain chain) throws IOException {
-                    Request newReq = chain.request().newBuilder()
-                            .header("Connection", "close")
-                            .build();
-                    return chain.proceed(newReq);
-                }
+            Interceptor acceptJsonInterceptor = chain -> {
+                Request request = chain.request().newBuilder()
+                        .header("Accept", "application/json")
+                        .build();
+                return chain.proceed(request);
             };
 
             OkHttpClient client = new OkHttpClient.Builder()
-                    .addInterceptor(connectionCloseInterceptor)
+                    .addInterceptor(acceptJsonInterceptor)
                     .addInterceptor(log)                  // можно убрать, если не нужны логи
                     .connectTimeout(15, TimeUnit.SECONDS)
                     .readTimeout(15, TimeUnit.SECONDS)
@@ -49,10 +46,14 @@ public final class ApiClient {
                     .protocols(Collections.singletonList(Protocol.HTTP_1_1))
                     .build();
 
+            Gson gson = new GsonBuilder()
+                    .setLenient() // сервер иногда отдаёт строки/HTML при ошибках
+                    .create();
+
             retrofit = new Retrofit.Builder()
                     .baseUrl(BASE_URL)
                     .client(client)
-                    .addConverterFactory(GsonConverterFactory.create())
+                    .addConverterFactory(GsonConverterFactory.create(gson))
                     .build();
         }
         return retrofit;
