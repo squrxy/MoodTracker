@@ -18,7 +18,7 @@ import com.example.moodtracker.auth.SessionManager;
 
 public class SplashActivity extends AppCompatActivity {
 
-    private static final long SHOW_TIME_MS = 1500;  // “флэш” 1.5с
+    private static final long SHOW_TIME_MS = 2200;  // “флэш” 1.5с
     private LottieAnimationView lottie;
     private SessionManager session;
 
