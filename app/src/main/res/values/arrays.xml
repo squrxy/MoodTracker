@@ -1,0 +1,7 @@
+<resources>
+    <string-array name="settings_period_options">
+        <item>day</item>
+        <item>week</item>
+        <item>month</item>
+    </string-array>
+</resources>

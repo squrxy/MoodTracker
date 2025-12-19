@@ -1,14 +1,10 @@
 package com.example.moodtracker.net;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
-import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
-import okhttp3.Request;
-import okhttp3.Response;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -28,19 +24,7 @@ public final class ApiClient {
             HttpLoggingInterceptor log = new HttpLoggingInterceptor();
             log.setLevel(HttpLoggingInterceptor.Level.BODY);
 
-            // Интерцептор, который добавляет Connection: close
-            Interceptor connectionCloseInterceptor = new Interceptor() {
-                @Override
-                public Response intercept(Chain chain) throws IOException {
-                    Request newReq = chain.request().newBuilder()
-                            .header("Connection", "close")
-                            .build();
-                    return chain.proceed(newReq);
-                }
-            };
-
             OkHttpClient client = new OkHttpClient.Builder()
-                    .addInterceptor(connectionCloseInterceptor)
                     .addInterceptor(log)                  // можно убрать, если не нужны логи
                     .connectTimeout(15, TimeUnit.SECONDS)
                     .readTimeout(15, TimeUnit.SECONDS)
