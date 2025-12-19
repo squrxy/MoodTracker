@@ -32,6 +32,8 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.fragment:fragment:1.8.2")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
+    implementation("androidx.lifecycle:lifecycle-livedata:2.8.4")
+    implementation("androidx.lifecycle:lifecycle-viewmodel:2.8.4")
     implementation("com.airbnb.android:lottie:6.4.0")
 
     // MPAndroidChart (pie/doughnut)
