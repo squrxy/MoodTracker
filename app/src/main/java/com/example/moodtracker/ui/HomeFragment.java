@@ -35,11 +35,17 @@ import com.example.moodtracker.ui.HomeViewModelFactory;
 import com.example.moodtracker.ui.state.MoodStats;
 import com.example.moodtracker.ui.state.UiState;
 import com.github.mikephil.charting.animation.Easing;
+import com.github.mikephil.charting.charts.HorizontalBarChart;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.components.Legend;
+import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
+import com.github.mikephil.charting.data.BarData;
+import com.github.mikephil.charting.data.BarDataSet;
+import com.github.mikephil.charting.data.BarEntry;
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,15 +64,17 @@ public class HomeFragment extends Fragment {
     private PieChart pieChart, pieChartGlowOuter, pieChartGlowInner;
     private LottieAnimationView lottieEmoji;
     private TextView tvMoodTitle, homeError;
-    private View cardPercents, tvMoodLabel, chartContainer;
+    private View cardPercents, tvMoodLabel, chartContainer, weeklyCard, weeklyEmpty;
     private NestedScrollView scroll;
     private ProgressBar homeProgress;
+    private HorizontalBarChart weeklyChart;
 
     private HomeViewModel viewModel;
     private boolean introPlayed = false;
     private final Runnable lottieLoopRunnable = new Runnable() {
         @Override
         public void run() {
+            lottieEmoji.setProgress(0f);
             lottieEmoji.playAnimation();
         }
     };
@@ -87,6 +95,9 @@ public class HomeFragment extends Fragment {
         tvMoodLabel = v.findViewById(R.id.tvMoodLabel);
         cardPercents = v.findViewById(R.id.cardPercents);
         chartContainer = v.findViewById(R.id.chartContainer);
+        weeklyCard = v.findViewById(R.id.cardWeekly);
+        weeklyEmpty = v.findViewById(R.id.weeklyEmpty);
+        weeklyChart = v.findViewById(R.id.weeklyChart);
         scroll = v.findViewById(R.id.scroll);
         homeProgress = v.findViewById(R.id.homeProgress);
         homeError = v.findViewById(R.id.homeError);
@@ -140,6 +151,7 @@ public class HomeFragment extends Fragment {
                 chartContainer.setVisibility(View.VISIBLE);
                 cardPercents.setVisibility(View.VISIBLE);
                 setupChart(root, stats);
+                setupWeeklyChart(stats);
                 applyEmojiAnimation(stats.dominantId);
                 if (!introPlayed) {
                     playIntroAnimations();
@@ -148,6 +160,7 @@ public class HomeFragment extends Fragment {
             } else {
                 chartContainer.setVisibility(View.INVISIBLE);
                 cardPercents.setVisibility(View.GONE);
+                weeklyCard.setVisibility(View.GONE);
                 tvMoodTitle.setText("No mood data yet");
                 tvMoodLabel.setVisibility(View.VISIBLE);
                 applyEmojiAnimation(0);
@@ -272,6 +285,78 @@ public class HomeFragment extends Fragment {
         bindRow(root.findViewById(R.id.rowNeutral), requireContext().getColor(R.color.grayNeutral),"Neutral", formatPercent(neutral));
     }
 
+    private void setupWeeklyChart(@NonNull MoodStats stats) {
+        if (stats.weeklyBreakdown == null || stats.weeklyBreakdown.isEmpty()) {
+            weeklyCard.setVisibility(View.GONE);
+            return;
+        }
+
+        List<MoodStats.DailyBreakdown> days = stats.weeklyBreakdown;
+        List<BarEntry> entries = new ArrayList<>();
+        List<String> labels = new ArrayList<>();
+        boolean hasAny = false;
+
+        for (int i = 0; i < days.size(); i++) {
+            MoodStats.DailyBreakdown d = days.get(i);
+            entries.add(new BarEntry(i, new float[]{d.joy, d.sadness, d.anger, d.fear, d.neutral}));
+            labels.add(d.label);
+            if (d.total > 0) {
+                hasAny = true;
+            }
+        }
+
+        if (!hasAny) {
+            weeklyCard.setVisibility(View.VISIBLE);
+            weeklyChart.setVisibility(View.GONE);
+            weeklyEmpty.setVisibility(View.VISIBLE);
+            return;
+        }
+
+        weeklyChart.setVisibility(View.VISIBLE);
+        weeklyEmpty.setVisibility(View.GONE);
+        weeklyCard.setVisibility(View.VISIBLE);
+
+        BarDataSet dataSet = new BarDataSet(entries, "");
+        dataSet.setColors(
+                requireContext().getColor(R.color.yellowJoy),
+                requireContext().getColor(R.color.blueSad),
+                requireContext().getColor(R.color.redAnger),
+                requireContext().getColor(R.color.purpleFear),
+                requireContext().getColor(R.color.grayNeutral)
+        );
+        dataSet.setDrawIcons(false);
+        dataSet.setStackLabels(new String[]{"Joy", "Sad", "Anger", "Fear", "Neutral"});
+        dataSet.setDrawValues(false);
+
+        BarData data = new BarData(dataSet);
+        data.setBarWidth(0.6f);
+        weeklyChart.setData(data);
+
+        weeklyChart.getDescription().setEnabled(false);
+        weeklyChart.getLegend().setEnabled(false);
+        weeklyChart.setScaleEnabled(false);
+        weeklyChart.setPinchZoom(false);
+        weeklyChart.setDoubleTapToZoomEnabled(false);
+        weeklyChart.setDrawGridBackground(false);
+        weeklyChart.setFitBars(true);
+
+        XAxis xAxis = weeklyChart.getXAxis();
+        xAxis.setValueFormatter(new IndexAxisValueFormatter(labels));
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.setGranularity(1f);
+        xAxis.setGranularityEnabled(true);
+        xAxis.setDrawGridLines(false);
+
+        weeklyChart.getAxisRight().setEnabled(false);
+        weeklyChart.getAxisLeft().setAxisMinimum(0f);
+        weeklyChart.getAxisLeft().setAxisMaximum(100f);
+        weeklyChart.getAxisLeft().setDrawGridLines(true);
+        weeklyChart.getAxisLeft().setDrawLabels(false);
+
+        weeklyChart.animateY(900, Easing.EaseOutBack);
+        weeklyChart.invalidate();
+    }
+
     private String formatPercent(float value) {
         return String.format(Locale.getDefault(), "%.0f%%", value);
     }
@@ -279,8 +364,9 @@ public class HomeFragment extends Fragment {
     private void applyEmojiAnimation(int dominantEmotionId) {
         int animationRes = mapEmotionToAnimation(dominantEmotionId);
         lottieEmoji.setAnimation(animationRes);
-        lottieEmoji.setProgress(0f);
-        startLottieWithPause();
+        if (introPlayed) {
+            restartLottieLoop();
+        }
     }
 
     private int mapEmotionToAnimation(int emotionId) {
@@ -355,39 +441,34 @@ public class HomeFragment extends Fragment {
                 .start();
 
         // 4) Lottie: плавное появление + scale up + повтор с паузой
-        lottieEmoji.setScaleX(0.85f);
-        lottieEmoji.setScaleY(0.85f);
+        lottieEmoji.setScaleX(0f);
+        lottieEmoji.setScaleY(0f);
         lottieEmoji.setAlpha(0f);
+        lottieEmoji.setSpeed(0.9f);
         lottieEmoji.setRepeatCount(0);
         lottieEmoji.setRepeatMode(LottieDrawable.RESTART);
-        lottieEmoji.removeAllAnimatorListeners();
-        lottieEmoji.removeCallbacks(lottieLoopRunnable);
+        restartLottieLoop();
 
         AnimatorSet emojiIn = new AnimatorSet();
         emojiIn.playTogether(
                 ObjectAnimator.ofFloat(lottieEmoji, View.ALPHA, 0f, 1f),
-                ObjectAnimator.ofFloat(lottieEmoji, View.SCALE_X, 0.85f, 1f),
-                ObjectAnimator.ofFloat(lottieEmoji, View.SCALE_Y, 0.85f, 1f)
+                ObjectAnimator.ofFloat(lottieEmoji, View.SCALE_X, 0f, 1f),
+                ObjectAnimator.ofFloat(lottieEmoji, View.SCALE_Y, 0f, 1f)
         );
-        emojiIn.setInterpolator(new OvershootInterpolator(2f));
-        emojiIn.setDuration(850);
-
-        emojiIn.addListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                startLottieWithPause();
-            }
-        });
-        emojiIn.start();
+        emojiIn.setInterpolator(new OvershootInterpolator(1.6f));
+        emojiIn.setStartDelay(320);
+        emojiIn.setDuration(640);
+        lottieEmoji.post(emojiIn::start);
     }
 
-    private void startLottieWithPause() {
+    private void restartLottieLoop() {
         lottieEmoji.removeCallbacks(lottieLoopRunnable);
         lottieEmoji.removeAllAnimatorListeners();
+        lottieEmoji.setSpeed(0.9f);
+        lottieEmoji.setProgress(0f);
         lottieEmoji.addAnimatorListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
-                lottieEmoji.removeAllAnimatorListeners();
                 lottieEmoji.postDelayed(lottieLoopRunnable, LOTTIE_PAUSE_MS);
             }
         });

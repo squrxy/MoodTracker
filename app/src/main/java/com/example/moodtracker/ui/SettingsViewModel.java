@@ -48,14 +48,15 @@ public class SettingsViewModel extends ViewModel {
         });
     }
 
-    public void saveSettings(boolean notificationsEnabled, String notifyTime, String defaultPeriod) {
+    public void saveSettings(boolean notificationsEnabled, String notifyTime, String defaultPeriod,
+                              String displayName, String about) {
         String userId = sessionManager.getUserId();
         if (userId == null) {
             settingsState.setValue(UiState.error(current(), "No user session"));
             return;
         }
         settingsState.setValue(UiState.loading(current()));
-        repository.updateSettings(userId, notificationsEnabled, notifyTime, defaultPeriod,
+        repository.updateSettings(userId, notificationsEnabled, notifyTime, defaultPeriod, displayName, about,
                 new SettingsRepository.SettingsCallback<SettingsDto>() {
                     @Override
                     public void onSuccess(SettingsDto data) {

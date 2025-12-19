@@ -64,5 +64,7 @@ public interface ApiService {
     Call<SettingsDto> updateSettings(@Field("user_id") String userId,
                                      @Field("notifications_enabled") int notificationsEnabled,
                                      @Field("notify_time") String notifyTime,
-                                     @Field("default_period") String defaultPeriod);
+                                     @Field("default_period") String defaultPeriod,
+                                     @Field("display_name") String displayName,
+                                     @Field("about") String about);
 }

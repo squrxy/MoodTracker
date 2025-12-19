@@ -6,4 +6,6 @@ public class SettingsDto {
     public String notify_time;
     public String default_period;
     public boolean notifications_enabled;
+    public String display_name;
+    public String about;
 }

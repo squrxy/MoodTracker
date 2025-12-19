@@ -34,6 +34,8 @@ public class SettingsFragment extends Fragment {
     private TextInputEditText etNotifyTime;
     private MaterialAutoCompleteTextView actPeriod;
     private TextInputLayout tilNotifyTime;
+    private TextInputEditText etDisplayName;
+    private TextInputEditText etAbout;
     private ProgressBar progress;
 
     private SettingsViewModel viewModel;
@@ -46,6 +48,8 @@ public class SettingsFragment extends Fragment {
         etNotifyTime = v.findViewById(R.id.etNotifyTime);
         actPeriod = v.findViewById(R.id.actPeriod);
         tilNotifyTime = v.findViewById(R.id.tilNotifyTime);
+        etDisplayName = v.findViewById(R.id.etDisplayName);
+        etAbout = v.findViewById(R.id.etAbout);
         progress = v.findViewById(R.id.progressSettings);
 
         SessionManager sessionManager = new SessionManager(requireContext());
@@ -89,11 +93,19 @@ public class SettingsFragment extends Fragment {
         if (!TextUtils.isEmpty(dto.default_period)) {
             actPeriod.setText(dto.default_period, false);
         }
+        if (!TextUtils.isEmpty(dto.display_name)) {
+            etDisplayName.setText(dto.display_name);
+        }
+        if (!TextUtils.isEmpty(dto.about)) {
+            etAbout.setText(dto.about);
+        }
     }
 
     private void saveSettings() {
         String notifyTime = etNotifyTime.getText() != null ? etNotifyTime.getText().toString() : "";
         String defaultPeriod = actPeriod.getText() != null ? actPeriod.getText().toString() : "";
+        String displayName = etDisplayName.getText() != null ? etDisplayName.getText().toString() : "";
+        String about = etAbout.getText() != null ? etAbout.getText().toString() : "";
 
         if (TextUtils.isEmpty(notifyTime)) {
             tilNotifyTime.setError(getString(R.string.settings_time_error));
@@ -102,6 +114,6 @@ public class SettingsFragment extends Fragment {
             tilNotifyTime.setError(null);
         }
 
-        viewModel.saveSettings(swNotifications.isChecked(), notifyTime, defaultPeriod);
+        viewModel.saveSettings(swNotifications.isChecked(), notifyTime, defaultPeriod, displayName, about);
     }
 }

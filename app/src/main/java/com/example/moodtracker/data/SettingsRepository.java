@@ -47,8 +47,10 @@ public class SettingsRepository {
                                boolean notificationsEnabled,
                                String notifyTime,
                                String defaultPeriod,
+                               String displayName,
+                               String about,
                                SettingsCallback<SettingsDto> callback) {
-        api.updateSettings(userId, notificationsEnabled ? 1 : 0, notifyTime, defaultPeriod)
+        api.updateSettings(userId, notificationsEnabled ? 1 : 0, notifyTime, defaultPeriod, displayName, about)
                 .enqueue(new Callback<SettingsDto>() {
                     @Override
                     public void onResponse(@NonNull Call<SettingsDto> call,
